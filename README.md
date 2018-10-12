@@ -1,11 +1,11 @@
 Jasny Entity Mapper
 ===
 
-[![Build Status](https://travis-ci.org/jasny/entityMapper.svg?branch=master)](https://travis-ci.org/jasny/entityMapper)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jasny/entityMapper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jasny/entityMapper/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/jasny/entityMapper/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jasny/entityMapper/?branch=master)
-[![Packagist Stable Version](https://img.shields.io/packagist/v/jasny/entityMapper.svg)](https://packagist.org/packages/jasny/entityMapper)
-[![Packagist License](https://img.shields.io/packagist/l/jasny/entityMapper.svg)](https://packagist.org/packages/jasny/entityMapper)
+[![Build Status](https://travis-ci.org/jasny/entity-mapper.svg?branch=master)](https://travis-ci.org/jasny/entity-mapper)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jasny/entity-mapper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jasny/entity-mapper/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/jasny/entity-mapper/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/jasny/entity-mapper/?branch=master)
+[![Packagist Stable Version](https://img.shields.io/packagist/v/jasny/entity-mapper.svg)](https://packagist.org/packages/jasny/entity-mapper)
+[![Packagist License](https://img.shields.io/packagist/l/jasny/entity-mapper.svg)](https://packagist.org/packages/jasny/entity-mapper)
 
 Data mapping for [Jasny Entity](https://github.com/jasny/entity).
 
