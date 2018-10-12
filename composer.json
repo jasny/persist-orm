@@ -1,5 +1,5 @@
 {
-    "name": "jasny/odm",
+    "name": "jasny/entity-mapper",
     "description": "",
     "license": "MIT",
     "type": "library",
@@ -11,33 +11,34 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/jasny/odm/issues",
-        "source": "https://github.com/jasny/odm"
+        "issues": "https://github.com/jasny/entity-mapper/issues",
+        "source": "https://github.com/jasny/entity-mapper"
     },
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.1.0",
+        "improved/function": "dev-master",
+        "improved/iterable": "dev-master",
+        "jasny/entity": "dev-master",
+        "jasny/php-functions": "dev-master as 4.2.0"
     },
     "require-dev": {
         "jasny/php-code-quality": "^2.3"
     },
     "autoload": {
         "psr-4": {
-            "Jasny\\Odm\\": "src/"
+            "Jasny\\EntityMapper\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Jasny\\Odm\\Tests\\": "tests/"
+            "Jasny\\EntityMapper\\Tests\\": "tests/"
         }
     },
     "scripts": {
         "test": [
-            "phpunit",
             "phpstan analyse",
+            "phpunit",
             "phpcs -p src"
-        ],
-        "post-create-project-cmd": [
-            "bash init.sh && rm init.sh"
         ]
     },
     "config": {
