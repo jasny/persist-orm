@@ -121,13 +121,17 @@ class EntityMapperTest extends TestCase
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');
 
+        $persist = function() {};
+
         $savePipeline = $this->createMock(SavePipeline::class);
+        $savePipeline->expects($this->once())->method('unstub')
+            ->with('persist', $this->identicalTo($persist))->willReturnSelf();
         $savePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo($entities))->willReturn($pipeline);
 
         $entityMapper = (new EntityMapper())->withSave($savePipeline);
 
-        $entityMapper->save($entities);
+        $entityMapper->save($persist, $entities);
     }
 
     public function testSaveSingle()
@@ -137,26 +141,17 @@ class EntityMapperTest extends TestCase
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');
 
+        $persist = function() {};
+
         $savePipeline = $this->createMock(SavePipeline::class);
+        $savePipeline->expects($this->once())->method('unstub')
+            ->with('persist', $this->identicalTo($persist))->willReturnSelf();
         $savePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo([$entity]))->willReturn($pipeline);
 
         $entityMapper = (new EntityMapper())->withSave($savePipeline);
 
-        $entityMapper->save($entity);
-    }
-
-    /**
-     * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Save pipeline is not set
-     */
-    public function testSaveNotSet()
-    {
-        $entity = $this->createMock(EntityInterface::class);
-
-        $entityMapper = new EntityMapper();
-
-        $entityMapper->save($entity);
+        $entityMapper->save($persist, $entity);
     }
 
     public function testWithSave()
@@ -190,13 +185,17 @@ class EntityMapperTest extends TestCase
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');
 
+        $persist = function() {};
+
         $deletePipeline = $this->createMock(DeletePipeline::class);
+        $deletePipeline->expects($this->once())->method('unstub')
+            ->with('persist', $this->identicalTo($persist))->willReturnSelf();
         $deletePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo($entities))->willReturn($pipeline);
 
         $entityMapper = (new EntityMapper())->withDelete($deletePipeline);
 
-        $entityMapper->delete($entities);
+        $entityMapper->delete($persist, $entities);
     }
 
     public function testDeleteSingle()
@@ -206,26 +205,17 @@ class EntityMapperTest extends TestCase
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');
 
+        $persist = function() {};
+
         $deletePipeline = $this->createMock(DeletePipeline::class);
+        $deletePipeline->expects($this->once())->method('unstub')
+            ->with('persist', $this->identicalTo($persist))->willReturnSelf();
         $deletePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo([$entity]))->willReturn($pipeline);
 
         $entityMapper = (new EntityMapper())->withDelete($deletePipeline);
 
-        $entityMapper->delete($entity);
-    }
-
-    /**
-     * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Delete pipeline is not set
-     */
-    public function testDeleteNotSet()
-    {
-        $entity = $this->createMock(EntityInterface::class);
-
-        $entityMapper = new EntityMapper();
-
-        $entityMapper->delete($entity);
+        $entityMapper->delete($persist, $entity);
     }
 
     public function testWithDelete()

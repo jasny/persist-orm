@@ -37,11 +37,12 @@ class SavePipelineTest extends TestCase
     {
         $expectedData = [['name' => "N0", 'age' => 20]];
         $result = [['id' => 'x0']];
-        $callback = $this->createCallbackMock($this->once(), [$expectedData], $result);
+        $persist = $this->createCallbackMock($this->once(), [$expectedData], $result);
 
         $entities = $this->createMockEntities(1);
 
-        (new SavePipeline($callback))
+        (new SavePipeline())
+            ->unstub('persist', $persist)
             ->with($entities)
             ->walk();
 
@@ -61,11 +62,12 @@ class SavePipelineTest extends TestCase
             2 => ['id' => 'x2']
         ];
 
-        $callback = $this->createCallbackMock($this->once(), [$expectedData], $result);
+        $persist = $this->createCallbackMock($this->once(), [$expectedData], $result);
 
         $entities = $this->createMockEntities(3);
 
-        (new SavePipeline($callback))
+        (new SavePipeline())
+            ->unstub('persist', $persist)
             ->with($entities)
             ->walk();
 
@@ -82,24 +84,34 @@ class SavePipelineTest extends TestCase
             ['name' => "N2", 'age' => 22]
         ];
 
-        $callback = $this->createCallbackMock($this->once(), [$expectedData]);
+        $persist = $this->createCallbackMock($this->once(), [$expectedData]);
 
         $entities = $this->createMockEntities(3);
 
-        (new SavePipeline($callback))
+        (new SavePipeline())
+            ->unstub('persist', $persist)
             ->with($entities)
             ->walk();
     }
 
     public function testNone()
     {
-        $callback = $this->createCallbackMock($this->never());
+        $persist = $this->createCallbackMock($this->never());
 
-        (new SavePipeline($callback))
+        (new SavePipeline())
+            ->unstub('persist', $persist)
             ->with([])
             ->walk();
     }
 
+    public function testNoPersist()
+    {
+        $entities = $this->createMockEntities(3);
+
+        (new SavePipeline())
+            ->with($entities)
+            ->walk();
+    }
 
     /**
      * @expectedException \UnexpectedValueException
@@ -107,9 +119,7 @@ class SavePipelineTest extends TestCase
      */
     public function testInvalidEntities()
     {
-        $callback = $this->createCallbackMock($this->never());
-
-        (new SavePipeline($callback))
+        (new SavePipeline())
             ->with(['foo'])
             ->walk();
     }

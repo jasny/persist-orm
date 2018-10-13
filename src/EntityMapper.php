@@ -6,6 +6,8 @@ namespace Jasny\EntityMapper;
 
 use Improved\IteratorPipeline\Pipeline;
 use Improved\IteratorPipeline\PipelineBuilder;
+use Jasny\EntityMapper\Pipeline\SavePipeline;
+use Jasny\EntityMapper\Pipeline\DeletePipeline;
 use Jasny\Entity\EntityInterface;
 use function Jasny\expect_type;
 
@@ -27,7 +29,16 @@ class EntityMapper implements EntityMapperInterface
 
 
     /**
-     * Create service with a pipeline to save entities.
+     * Class constructor.
+     */
+    public function __construct()
+    {
+        $this->savePipeline = new SavePipeline();
+        $this->deletePipeline = new DeletePipeline();
+    }
+
+    /**
+     * Create service with a custom pipeline to save entities.
      *
      * @param PipelineBuilder $pipeline
      * @return static
@@ -45,7 +56,7 @@ class EntityMapper implements EntityMapperInterface
     }
 
     /**
-     * Create service with a pipeline to delete entities.
+     * Create service with a custom pipeline to delete entities.
      *
      * @param PipelineBuilder $pipeline
      * @return static
@@ -81,7 +92,7 @@ class EntityMapper implements EntityMapperInterface
 
     /**
      * Turn data into entities.
-     * @curry
+     * Returns (callable) pipeline builder if data is omitted.
      *
      * @param string          $class  Entity class
      * @param iterable<array> $data
@@ -104,19 +115,16 @@ class EntityMapper implements EntityMapperInterface
     /**
      * Save entities to persistent storage.
      *
+     * @param callable                                  $persist
      * @param iterable<EntityInterface>|EntityInterface $entities
      * @return void
-     * @throws \BadMethodCallException if save pipeline is not set
      */
-    public function save($entities): void
+    public function save(callable $persist, $entities): void
     {
         expect_type($entities, ['iterable', EntityInterface::class]);
 
-        if (!isset($this->savePipeline)) {
-            throw new \BadMethodCallException("Save pipeline is not set");
-        }
-
         $this->savePipeline
+            ->unstub('persist', $persist)
             ->with($entities instanceof EntityInterface ? [$entities] : $entities)
             ->walk();
     }
@@ -124,19 +132,16 @@ class EntityMapper implements EntityMapperInterface
     /**
      * Delete entities from persistent storage.
      *
+     * @param callable                                  $persist
      * @param iterable<EntityInterface>|EntityInterface $entities
      * @return void
-     * @throws \BadMethodCallException if delete pipeline is not set
      */
-    public function delete($entities): void
+    public function delete(callable $persist, $entities): void
     {
         expect_type($entities, ['iterable', EntityInterface::class]);
 
-        if (!isset($this->deletePipeline)) {
-            throw new \BadMethodCallException("Delete pipeline is not set");
-        }
-
         $this->deletePipeline
+            ->unstub('persist', $persist)
             ->with($entities instanceof EntityInterface ? [$entities] : $entities)
             ->walk();
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jasny\EntityMapper\Pipeline;
 
+use Improved\IteratorPipeline\Pipeline;
 use Improved\IteratorPipeline\PipelineBuilder;
 use Jasny\Entity\DynamicEntityInterface;
 use Jasny\Entity\EntityInterface;
@@ -16,10 +17,8 @@ class SavePipeline extends PipelineBuilder
 {
     /**
      * Class constructor.
-     *
-     * @param callable $save
      */
-    public function __construct(callable $save)
+    public function __construct()
     {
         $this->steps = $this
             ->expectType(EntityInterface::class)
@@ -31,7 +30,7 @@ class SavePipeline extends PipelineBuilder
             ->map(function (array $data, EntityInterface $entity) {
                 return $entity->trigger('before-save', $data);
             })
-            ->then($this->saveStep($save))              // key is Entity, value is modified data (auto-increment id)
+            ->stub('persist')                     // key is Entity, value is modified data (auto-increment id)
             ->apply(function ($data, EntityInterface $entity) {
                 object_set_properties($entity, $data, $entity instanceof DynamicEntityInterface);
             })
@@ -43,14 +42,31 @@ class SavePipeline extends PipelineBuilder
     }
 
     /**
-     * Create the save step
+     * Get a pipeline builder where a stub is replaced.
      *
-     * @param callable $save
+     * @param string   $name
+     * @param callable $callable
+     * @param mixed    ...$args
+     * @return static
+     */
+    public function unstub(string $name, callable $callable, ...$args): PipelineBuilder
+    {
+        if ($name === 'persist') {
+            $callable = $this->persistStep($callable);
+        }
+
+        return parent::unstub($name, $callable, $args);
+    }
+
+    /**
+     * Create the step to save to persistent storage.
+     *
+     * @param callable $persist
      * @return callable
      */
-    protected function saveStep(callable $save): callable
+    protected function persistStep(callable $persist): callable
     {
-        return function (iterable $iterable) use ($save): \Generator {
+        return function (iterable $iterable) use ($persist): \Generator {
             $data = [];
             $entities = [];
 
@@ -60,7 +76,7 @@ class SavePipeline extends PipelineBuilder
             }
 
             if (count($data) > 0) {
-                $result = $save($data);
+                $result = $persist($data);
             }
 
             foreach ($entities as $i => $entity) {

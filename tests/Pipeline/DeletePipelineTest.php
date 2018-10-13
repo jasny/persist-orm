@@ -33,11 +33,12 @@ class DeletePipelineTest extends TestCase
     public function testSingle()
     {
         $expectedIds = ['x0'];
-        $callback = $this->createCallbackMock($this->once(), [$expectedIds]);
+        $persist = $this->createCallbackMock($this->once(), [$expectedIds]);
 
         $entities = $this->createMockEntities(1);
 
-        (new DeletePipeline($callback))
+        (new DeletePipeline())
+            ->unstub('persist', $persist)
             ->with($entities)
             ->walk();
     }
@@ -45,24 +46,34 @@ class DeletePipelineTest extends TestCase
     public function testMultiple()
     {
         $expectedIds = ['x0', 'x1', 'x2'];
-        $callback = $this->createCallbackMock($this->once(), [$expectedIds]);
+        $persist = $this->createCallbackMock($this->once(), [$expectedIds]);
 
         $entities = $this->createMockEntities(3);
 
-        (new DeletePipeline($callback))
+        (new DeletePipeline())
+            ->unstub('persist', $persist)
             ->with($entities)
             ->walk();
     }
 
     public function testNone()
     {
-        $callback = $this->createCallbackMock($this->never());
+        $persist = $this->createCallbackMock($this->never());
 
-        (new DeletePipeline($callback))
+        (new DeletePipeline())
+            ->unstub('persist', $persist)
             ->with([])
             ->walk();
     }
 
+    public function testNoPersist()
+    {
+        $entities = $this->createMockEntities(3);
+
+        (new DeletePipeline())
+            ->with($entities)
+            ->walk();
+    }
 
     /**
      * @expectedException \UnexpectedValueException
@@ -71,9 +82,7 @@ class DeletePipelineTest extends TestCase
      */
     public function testInvalidEntities()
     {
-        $callback = $this->createCallbackMock($this->never());
-
-        (new DeletePipeline($callback))
+        (new DeletePipeline())
             ->with(['foo'])
             ->walk();
     }

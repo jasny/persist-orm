@@ -77,12 +77,8 @@ The `SavePipeline` will handle converting the entity into data, calling triggers
 the callback.
 
 ```php
-use Improved as i;
-use Jasny\EntityMapper\EntityMapper;
-use Jasny\EntityMapper\Pipeline\SavePipeline;
-
 // Example to save to JSON file; normally you'd use a database
-$save = function(array $items) {
+$persist = function(array $items) {
     foreach ($items as $i => $item) { 
         $id = preg_replace('/\W+/', '-', i\string_convert_case($item['name'], i\STRING_LOWERCASE));
         file_put_contents("items/$id.json", json_encode($item));
@@ -91,12 +87,11 @@ $save = function(array $items) {
     }
 }
 
-$entityMapper = (new EntityMapper)
-    ->withSave(new SavePipeline($save); 
-
-// Later
-$entityMapper->save($entities); // Entities will have a new `id` property
+$entityMapper->save($persist, $entities); // Entities will have a new `id` property
 ```
+
+It's possible to configure a custom pipeline for saving entities by passing a pipeline builder to `withSave()`. This
+builder MUST have a `persist` stub.
 
 ### Delete entities from persistent storage
 
@@ -109,12 +104,8 @@ The `DeletePipeline` will handle converting the entity into data, calling trigge
 the callback.
 
 ```php
-use Improved as i;
-use Jasny\EntityMapper\EntityMapper;
-use Jasny\EntityMapper\Pipeline\DeletePipeline;
-
 // Example to delete JSON files; normally you'd use a database
-$delete = function(array $ids) {
+$persist = function(array $ids) {
     foreach ($ids as $id) {
         if (!preg_match('/^[\w\-]+$/', $id) {
             throw new \UnexpectedValueException("Invalid id '$id'");
@@ -124,9 +115,8 @@ $delete = function(array $ids) {
     }
 }
 
-$entityMapper = (new EntityMapper)
-    ->withDelete(new DeletePipeline($delete); 
-
-// Later
-$entityMapper->delete($entities);
+$entityMapper->delete($persist, $entities);
 ```
+
+It's possible to configure a custom pipeline for deleting entities by passing a pipeline builder to `withDelete()`. This
+builder MUST have a `persist` stub.

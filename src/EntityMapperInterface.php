@@ -24,7 +24,7 @@ interface EntityMapperInterface
 
     /**
      * Turn data into entities.
-     * @curry
+     * Returns (callable) pipeline builder if data is omitted.
      *
      * @param string          $class
      * @param iterable<array> $data
@@ -36,16 +36,18 @@ interface EntityMapperInterface
     /**
      * Save entities to persistent storage.
      *
+     * @param callable                                  $persist
      * @param iterable<EntityInterface>|EntityInterface $entities
      * @return void
      */
-    public function save($entities): void;
+    public function save(callable $persist, $entities): void;
 
     /**
      * Delete entities from persistent storage.
      *
+     * @param callable                                  $persist
      * @param iterable<EntityInterface>|EntityInterface $entities
      * @return void
      */
-    public function delete($entities): void;
+    public function delete(callable $persist, $entities): void;
 }

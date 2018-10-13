@@ -15,17 +15,15 @@ class DeletePipeline extends PipelineBuilder
 {
     /**
      * Class constructor.
-     *
-     * @param callable $delete
      */
-    public function __construct(callable $delete)
+    public function __construct()
     {
         $this->steps = $this
             ->expectType(IdentifiableEntityInterface::class)
             ->apply(function (EntityInterface $entity) {
                 $entity->trigger('before-delete');
             })
-            ->then($this->deleteStep($delete))
+            ->stub('persist')
             ->apply(function (EntityInterface $entity) {
                 $entity->trigger('after-delete');
             })
@@ -33,14 +31,31 @@ class DeletePipeline extends PipelineBuilder
     }
 
     /**
-     * Create the delete step
+     * Get a pipeline builder where a stub is replaced.
      *
-     * @param callable $delete
+     * @param string   $name
+     * @param callable $callable
+     * @param mixed    ...$args
+     * @return static
+     */
+    public function unstub(string $name, callable $callable, ...$args): PipelineBuilder
+    {
+        if ($name === 'persist') {
+            $callable = $this->persistStep($callable);
+        }
+
+        return parent::unstub($name, $callable, $args);
+    }
+
+    /**
+     * Create the step to delete from persistent storage
+     *
+     * @param callable $persist
      * @return callable
      */
-    protected function deleteStep(callable $delete): callable
+    protected function persistStep(callable $persist): callable
     {
-        return function (iterable $iterable) use ($delete): \Generator {
+        return function (iterable $iterable) use ($persist): \Generator {
             $ids = [];
             $entities = [];
 
@@ -54,7 +69,7 @@ class DeletePipeline extends PipelineBuilder
             }
 
             if (count($ids) > 0) {
-                $delete($ids);
+                $persist($ids);
             }
 
             foreach ($entities as $entity) {
