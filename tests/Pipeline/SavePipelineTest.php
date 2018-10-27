@@ -2,7 +2,7 @@
 
 namespace Jasny\EntityMapper\Tests\Pipeline;
 
-use Jasny\Entity\DynamicEntityInterface;
+use Jasny\Entity\DynamicEntity;
 use Jasny\EntityMapper\Pipeline\SavePipeline;
 use Jasny\TestHelper;
 use PHPUnit\Framework\MockObject\InvocationMocker;
@@ -20,7 +20,7 @@ class SavePipelineTest extends TestCase
         $entities = [];
 
         for ($i = 0; $i < $count; $i++) {
-            $entity = $this->createMock(DynamicEntityInterface::class);
+            $entity = $this->createMock(DynamicEntity::class);
             $entity->expects($this->any())->method('toAssoc')
                 ->willReturn(['name' => $i, 'age' => 20 + $i]);
             $entity->expects($this->exactly(2))->method('trigger')
@@ -115,7 +115,7 @@ class SavePipelineTest extends TestCase
 
     /**
      * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage Expected all elements to be of type Jasny\Entity\EntityInterface object, string given
+     * @expectedExceptionMessage Expected all elements to be of type Jasny\Entity\Entity object, string given
      */
     public function testInvalidEntities()
     {

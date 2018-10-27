@@ -6,8 +6,8 @@ namespace Jasny\EntityMapper\Pipeline;
 
 use Improved\IteratorPipeline\Pipeline;
 use Improved\IteratorPipeline\PipelineBuilder;
-use Jasny\Entity\DynamicEntityInterface;
-use Jasny\Entity\EntityInterface;
+use Jasny\Entity\DynamicEntity;
+use Jasny\Entity\Entity;
 use function Jasny\object_set_properties;
 
 /**
@@ -21,21 +21,21 @@ class SavePipeline extends PipelineBuilder
     public function __construct()
     {
         $this->steps = $this
-            ->expectType(EntityInterface::class)
+            ->expectType(Entity::class)
             ->then(function (iterable $iterable) {
                 foreach ($iterable as $entity) {
                     yield $entity => $entity->toAssoc(); // key is Entity, value is data (array)
                 }
             })
-            ->map(function (array $data, EntityInterface $entity) {
+            ->map(function (array $data, Entity $entity) {
                 return $entity->trigger('before-save', $data);
             })
             ->stub('persist')                     // key is Entity, value is modified data (auto-increment id)
-            ->apply(function ($data, EntityInterface $entity) {
-                object_set_properties($entity, $data, $entity instanceof DynamicEntityInterface);
+            ->apply(function ($data, Entity $entity) {
+                object_set_properties($entity, $data, $entity instanceof DynamicEntity);
             })
             ->keys()                                    // value is Entity
-            ->apply(function (EntityInterface $entity) {
+            ->apply(function (Entity $entity) {
                 $entity->trigger('after-save');
             })
             ->steps;

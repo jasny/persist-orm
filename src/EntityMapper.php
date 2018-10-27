@@ -8,7 +8,7 @@ use Improved\IteratorPipeline\Pipeline;
 use Improved\IteratorPipeline\PipelineBuilder;
 use Jasny\EntityMapper\Pipeline\SavePipeline;
 use Jasny\EntityMapper\Pipeline\DeletePipeline;
-use Jasny\Entity\EntityInterface;
+use Jasny\Entity\Entity;
 use function Jasny\expect_type;
 
 /**
@@ -79,12 +79,12 @@ class EntityMapper implements EntityMapperInterface
      *
      * @param string $class    Entity class
      * @param mixed  ...$args  Arguments are passed to entity constructor
-     * @return EntityInterface
+     * @return Entity
      */
-    public function create(string $class, ...$args): EntityInterface
+    public function create(string $class, ...$args): Entity
     {
-        if (!is_a($class, EntityInterface::class, true)) {
-            throw new \InvalidArgumentException("$class doesn't implement EntityInterface");
+        if (!is_a($class, Entity::class, true)) {
+            throw new \InvalidArgumentException("$class isn't an Entity");
         }
 
         return new $class(...$args);
@@ -96,17 +96,17 @@ class EntityMapper implements EntityMapperInterface
      *
      * @param string          $class  Entity class
      * @param iterable<array> $data
-     * @return PipelineBuilder|Pipeline|iterable<EntityInterface>
+     * @return PipelineBuilder|Pipeline|iterable<Entity>
      */
     public function convert(string $class, iterable $data = null)
     {
-        if (!is_a($class, EntityInterface::class, true)) {
-            throw new \InvalidArgumentException("$class doesn't implement EntityInterface");
+        if (!is_a($class, Entity::class, true)) {
+            throw new \InvalidArgumentException("$class isn't an Entity");
         }
 
         return (isset($data) ? Pipeline::with($data) : Pipeline::build())
             ->expectType('array')
-            ->map(function (array $entry) use ($class): EntityInterface {
+            ->map(function (array $entry) use ($class): Entity {
                 return $class::__set_state($entry);
             });
     }
@@ -116,16 +116,16 @@ class EntityMapper implements EntityMapperInterface
      * Save entities to persistent storage.
      *
      * @param callable                                  $persist
-     * @param iterable<EntityInterface>|EntityInterface $entities
+     * @param iterable<Entity>|Entity $entities
      * @return void
      */
     public function save(callable $persist, $entities): void
     {
-        expect_type($entities, ['iterable', EntityInterface::class]);
+        expect_type($entities, ['iterable', Entity::class]);
 
         $this->savePipeline
             ->unstub('persist', $persist)
-            ->with($entities instanceof EntityInterface ? [$entities] : $entities)
+            ->with($entities instanceof Entity ? [$entities] : $entities)
             ->walk();
     }
 
@@ -133,16 +133,16 @@ class EntityMapper implements EntityMapperInterface
      * Delete entities from persistent storage.
      *
      * @param callable                                  $persist
-     * @param iterable<EntityInterface>|EntityInterface $entities
+     * @param iterable<Entity>|Entity $entities
      * @return void
      */
     public function delete(callable $persist, $entities): void
     {
-        expect_type($entities, ['iterable', EntityInterface::class]);
+        expect_type($entities, ['iterable', Entity::class]);
 
         $this->deletePipeline
             ->unstub('persist', $persist)
-            ->with($entities instanceof EntityInterface ? [$entities] : $entities)
+            ->with($entities instanceof Entity ? [$entities] : $entities)
             ->walk();
     }
 }

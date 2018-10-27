@@ -4,8 +4,8 @@ namespace Jasny\EntityMapper\Tests;
 
 use Improved\IteratorPipeline\Pipeline;
 use Jasny\Entity\AbstractBasicEntity;
-use Jasny\Entity\DynamicEntityInterface;
-use Jasny\Entity\EntityInterface;
+use Jasny\Entity\DynamicEntity;
+use Jasny\Entity\Entity;
 use Jasny\EntityMapper\EntityMapper;
 use Jasny\EntityMapper\Pipeline\SavePipeline;
 use Jasny\EntityMapper\Pipeline\DeletePipeline;
@@ -24,7 +24,7 @@ class EntityMapperTest extends TestCase
 
     public function setUp()
     {
-        $blueprint = new class() extends AbstractBasicEntity implements DynamicEntityInterface {
+        $blueprint = new class() extends AbstractBasicEntity implements DynamicEntity {
             public $foo;
             public $bar;
 
@@ -64,7 +64,7 @@ class EntityMapperTest extends TestCase
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage FooBar doesn't implement EntityInterface
+     * @expectedExceptionMessage FooBar doesn't implement Entity
      */
     public function testCreateInvalidClassName()
     {
@@ -101,7 +101,7 @@ class EntityMapperTest extends TestCase
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage FooBar doesn't implement EntityInterface
+     * @expectedExceptionMessage FooBar doesn't implement Entity
      */
     public function testConvertInvalidClassName()
     {
@@ -113,9 +113,9 @@ class EntityMapperTest extends TestCase
     public function testSave()
     {
         $entities = [
-            $this->createMock(EntityInterface::class),
-            $this->createMock(EntityInterface::class),
-            $this->createMock(EntityInterface::class)
+            $this->createMock(Entity::class),
+            $this->createMock(Entity::class),
+            $this->createMock(Entity::class)
         ];
 
         $pipeline = $this->createMock(Pipeline::class);
@@ -136,7 +136,7 @@ class EntityMapperTest extends TestCase
 
     public function testSaveSingle()
     {
-        $entity = $this->createMock(EntityInterface::class);
+        $entity = $this->createMock(Entity::class);
 
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');
@@ -177,9 +177,9 @@ class EntityMapperTest extends TestCase
     public function testDelete()
     {
         $entities = [
-            $this->createMock(EntityInterface::class),
-            $this->createMock(EntityInterface::class),
-            $this->createMock(EntityInterface::class)
+            $this->createMock(Entity::class),
+            $this->createMock(Entity::class),
+            $this->createMock(Entity::class)
         ];
 
         $pipeline = $this->createMock(Pipeline::class);
@@ -200,7 +200,7 @@ class EntityMapperTest extends TestCase
 
     public function testDeleteSingle()
     {
-        $entity = $this->createMock(EntityInterface::class);
+        $entity = $this->createMock(Entity::class);
 
         $pipeline = $this->createMock(Pipeline::class);
         $pipeline->expects($this->once())->method('walk');

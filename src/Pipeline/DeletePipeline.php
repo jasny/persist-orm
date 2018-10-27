@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Jasny\EntityMapper\Pipeline;
 
 use Improved\IteratorPipeline\PipelineBuilder;
-use Jasny\Entity\EntityInterface;
-use Jasny\Entity\IdentifiableEntityInterface;
+use Jasny\Entity\Entity;
+use Jasny\Entity\IdentifiableEntity;
 
 /**
  * Pipeline to delete entities.
@@ -19,12 +19,12 @@ class DeletePipeline extends PipelineBuilder
     public function __construct()
     {
         $this->steps = $this
-            ->expectType(IdentifiableEntityInterface::class)
-            ->apply(function (EntityInterface $entity) {
+            ->expectType(IdentifiableEntity::class)
+            ->apply(function (Entity $entity) {
                 $entity->trigger('before-delete');
             })
             ->stub('persist')
-            ->apply(function (EntityInterface $entity) {
+            ->apply(function (Entity $entity) {
                 $entity->trigger('after-delete');
             })
             ->steps;

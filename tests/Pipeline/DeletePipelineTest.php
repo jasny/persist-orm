@@ -2,7 +2,7 @@
 
 namespace Jasny\EntityMapper\Tests\Pipeline;
 
-use Jasny\Entity\IdentifiableEntityInterface;
+use Jasny\Entity\IdentifiableEntity;
 use Jasny\EntityMapper\Pipeline\DeletePipeline;
 use Jasny\TestHelper;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +19,7 @@ class DeletePipelineTest extends TestCase
         $entities = [];
 
         for ($i = 0; $i < $count; $i++) {
-            $entity = $this->createMock(IdentifiableEntityInterface::class);
+            $entity = $this->createMock(IdentifiableEntity::class);
             $entity->expects($this->any())->method('getId')->willReturn("x{$i}");
             $entity->expects($this->exactly(2))->method('trigger')
                 ->withConsecutive(['before-delete'], ['after-delete']);
@@ -77,7 +77,7 @@ class DeletePipelineTest extends TestCase
 
     /**
      * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessage Expected all elements to be of type Jasny\Entity\IdentifiableEntityInterface object,
+     * @expectedExceptionMessage Expected all elements to be of type Jasny\Entity\IdentifiableEntity object,
      *   string given
      */
     public function testInvalidEntities()
