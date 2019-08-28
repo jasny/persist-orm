@@ -1,6 +1,0 @@
-parameters:
-    level: 4
-    paths:
-        - src
-includes:
-  	- vendor/phpstan/phpstan-strict-rules/rules.neon
