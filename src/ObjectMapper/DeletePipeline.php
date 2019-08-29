@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Jasny\EntityMapper\Pipeline;
+namespace Jasny\Persist\ObjectMapper;
 
 use Improved\IteratorPipeline\PipelineBuilder;
 use Jasny\Entity\Entity;

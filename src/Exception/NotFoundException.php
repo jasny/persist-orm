@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Jasny\DB\Exception;
+namespace Jasny\Persist\Exception;
 
 /**
- * Could not fetch the entity based on specified id or filter
+ * Could not fetch the object based on specified id or filter
  */
-class EntityNotFoundException extends \RuntimeException
+class NotFoundException extends \RuntimeException
 {
     /**
      * @var string
@@ -65,8 +65,11 @@ class EntityNotFoundException extends \RuntimeException
      */
     public function getEntityDescription(): string
     {
-        $id = is_scalar($this->entityId) ? (string)$this->entityId : $this->entityId;
+        $id = is_scalar($this->entityId) && (is_object($this->entityId) && method_exists($this->entityId, '__toString'))
+            ? (string)$this->entityId
+            : $this->entityId;
 
         return $this->entityClass . ' ' . json_encode($id);
     }
 }
+

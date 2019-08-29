@@ -2,102 +2,87 @@
 
 declare(strict_types=1);
 
-namespace Jasny\DB\Gateway;
+namespace Jasny\Persist;
 
-use Jasny\DB\CRUD\Result;
-use Jasny\DB\ODM\ODMInterface;
-use Jasny\Entity\EntityInterface;
-use Jasny\Entity\IdentifiableEntityInterface;
-use Jasny\EntityCollection\EntityCollectionInterface;
-use Jasny\DB\Exception\EntityNotFoundException;
+use Jasny\DB\Read\ReadInterface;
+use Jasny\DB\Write\WriteInterface;
+use Jasny\DB\Exception\FoundException;
 
 /**
  * Gateway to a data set, like a DB table (RDBMS) or collection (NoSQL).
+ *
+ * @template OBJ as object
  */
 interface GatewayInterface
 {
     /**
-     * Create a new entity.
+     * Create a new object.
      *
-     * @param mixed ...$args   Arguments are passed to entity constructor
-     * @return EntityInterface
+     * @param mixed ...$args
+     * @return OBJ
      */
-    public function create(...$args): EntityInterface;
+    public function create(...$args): object;
 
     /**
-     * Fetch a single entity.
+     * Fetch a single object.
      *
      * @param mixed $id    ID or filter
      * @param array $opts
-     * @return EntityInterface
-     * @throws EntityNotFoundException if Entity with id isn't found and no 'optional' opt was given
+     * @return OBJ
+     * @throws NotFoundException
      */
-    public function find($id, array $opts = []): ?EntityInterface;
+    public function findOne($id, array $opts = []): object;
 
     /**
-     * Fetch multiple entities
+     * Fetch a single object if it exists.
+     *
+     * @param mixed $id    ID or filter
+     * @param array $opts
+     * @return OBJ|null
+     */
+    public function findFirst($id, array $opts = []): ?object;
+
+    /**
+     * Fetch all objects from the set.
      *
      * @param array $filter
      * @param array $opts
-     * @return EntityCollectionInterface<EntityInterface>
+     * @return IteratorPipeline<OBJ>
      */
-    public function findAll(array $filter, array $opts = []): EntityCollectionInterface;
+    public function findAll(array $filter = [], array $opts = []): IteratorPipeline;
 
     /**
-     * Check if an entity exists.
+     * Check if an object exists in the db.
      *
-     * @param mixed $id   ID or filter
+     * @param mixed $id    ID or filter
      * @param array $opts
      * @return bool
      */
     public function exists($id, array $opts = []): bool;
 
     /**
-     * Save an entity.
+     * Check if the property of an object is unique.
      *
-     * @param EntityInterface $entity
-     * @param array           $opts
-     * @return void
+     * @param OBJ             $object
+     * @param string|string[] $property  Property/properties that should be unique
+     * @param array    $opts
+     * @return bool
      */
-    public function save(EntityInterface $entity, array $opts = []): void;
+    public function hasUnique($object, $property, array $opts = []): bool;
 
     /**
-     * Delete an entity.
+     * Save an object.
      *
-     * @param IdentifiableEntityInterface $entity
-     * @param array                       $opts
-     * @return void
+     * @param OBJ|iterable<OBJ> $object
+     * @param array             $opts
      */
-    public function delete(IdentifiableEntityInterface $entity, array $opts = []): void;
-
+    public function save($object, array $opts = []): void;
 
     /**
-     * Find records based on filter.
-     * (No ODM / ORM)
+     * Delete an object.
      *
-     * @param array $filter
+     * @param OBJ   $object
      * @param array $opts
-     * @return Result
      */
-    public function fetch(array $filter = [], array $opts = []): Result;
-
-    /**
-     * Query and count result.
-     *
-     * @param array $filter
-     * @param array $opts
-     * @return int
-     */
-    public function count(array $filter = [], array $opts = []): int;
-
-    /**
-     * Find records in the data source using full text search.
-     * (No ODM / ORM)
-     *
-     * @param string $terms
-     * @param array  $filter
-     * @param array  $opts
-     * @return Result
-     */
-    public function search(string $terms, array $filter = [], array $opts = []): Result;
+    public function delete($object, array $opts = []): void;
 }

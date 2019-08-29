@@ -2,202 +2,213 @@
 
 declare(strict_types=1);
 
-namespace Jasny\DB\Gateway;
+namespace Jasny\Persist;
 
 use Improved as i;
-use const Improved\FUNCTION_ARGUMENT_PLACEHOLDER as ___;
-use Jasny\DB\ODM\EntityMapper;
-use Jasny\DB\CRUD\CRUDInterface;
-use Jasny\DB\CRUD\Result;
-use Jasny\DB\Search\SearchInterface;
-use Jasny\Entity\EntityInterface;
-use Jasny\Entity\IdentifiableEntityInterface;
-use Jasny\EntityCollection\EntityCollectionInterface;
-use Jasny\DB\Exception\EntityNotFoundException;
+use Improved\IteratorPipeline\Pipeline;
+use Jasny\DB\Option\LimitOption;
+use Jasny\DB\Read\ReadInterface;
+use Jasny\DB\Write\WriteInterface;
+use Jasny\Persist\NotFoundException;
 
 /**
  * Base class for composite gateway.
+ *
+ * @template OBJ as object
  */
 class Gateway implements GatewayInterface
 {
     /**
-     * @var mixed
-     */
-    protected $storage;
-
-    /**
      * @var string
      */
-    protected $entityClass;
+    protected $objectClass;
 
     /**
-     * @var EntityMapper
+     * @var ObjectMapper
      */
-    protected $entityMapper;
+    protected $mapper;
 
     /**
-     * @var CRUDInterface
+     * @var ReadInterface
      */
-    protected $crud;
+    protected $read;
 
     /**
-     * @var SearchInterface
+     * @var WriteInterface
      */
-    protected $search;
+    protected $write;
 
 
     /**
      * Gateway constructor.
      *
-     * @param mixed           $storage
-     * @param EntityMapper    $entityMapper
-     * @param CRUDInterface   $crud
-     * @param SearchInterface $search
+     * @param OBJ::class     $class
+     * @param ReadInterface  $read
+     * @param WriteInterface $write
      */
-    public function __construct(
-        $storage,
-        string $entityClass,
-        EntityMapper $entityMapper,
-        CRUDInterface $crud,
-        SearchInterface $search
-    ) {
-        $this->storage = $storage;
-
-        $this->entityMapper = $entityMapper;
-        $this->crud = $crud;
+    public function __construct(string $class, ReadInterface $read, WriteInterface $write)
+    {
+        $this->objectClass = $class;
+        $this->read = $read;
         $this->search = $search;
+
+        $this->mapper = new ObjectMapper();
     }
 
 
     /**
-     * Create a new entity.
+     * Create a copy of the gateway with a different mapper.
+     *
+     * @param ObjectMapper $mapper
+     * @return static
+     */
+    public function withObjectMapper(ObjectMapper $mapper): self
+    {
+        if ($this->mapper === $mapper) {
+            return $this;
+        }
+    
+        $copy = clone $this;
+        $copy->mapper = $mapper;
+
+        return $copy;
+    }
+
+
+    /**
+     * Create a new object.
      *
      * @param mixed ...$args
-     * @return EntityInterface
+     * @return OBJ
      */
-    public function create(...$args): EntityInterface
+    public function create(...$args): object
     {
-        return $this->entityMapper->create($this->entityClass, ...$args);
+        return $this->mapper->create($this->objectClass, ...$args);
     }
 
     /**
-     * Fetch a single entity.
+     * Fetch a single object.
      *
-     * @param mixed $id ID or filter
+     * @param mixed $id    ID or filter
      * @param array $opts
-     * @return EntityInterface
-     * @throws EntityNotFoundException if Entity with id isn't found and no 'optional' opt was given
+     * @return OBJ
+     * @throws NotFoundException
      */
-    public function find($id, array $opts = []): ?EntityInterface
+    public function findOne($id, array $opts = []): object
     {
-        $filter = is_array($id) ? $id : [':id' => $id];
+        $filter = is_array($id) ? $id : $this->mapper->filterOnId($id);
+        $opts[] = new LimitOption(1);
 
         try {
-            $entity = $this->crud->fetch($this->storage, $filter, ['limit' => 1] + $opts)
-                ->then($this->entityMapper->convert())
-                ->first((bool)($opts['optional'] ?? false));
+            $object = $this->read->fetch($this->storage, $filter, $opts)
+                ->then($this->mapper->convert())
+                ->first(false);
         } catch (RangeException $exception) {
-            throw new EntityNotFoundException($this->entityClass, $id, 0, $exception);
+            throw new NotFoundException($this->objectClass, $id, 0, $exception);
         }
 
-        return $entity;
+        return $object;
     }
 
     /**
-     * Fetch all entities from the set.
+     * Fetch a single object if it exists.
+     *
+     * @param mixed $id    ID or filter
+     * @param array $opts
+     * @return OBJ|null
+     */
+    public function findFirst($id, array $opts = []): ?object
+    {
+        $filter = is_array($id) ? $id : $this->mapper->filterOnId($id);
+        $opts[] = new LimitOption(1);
+
+        return $this->read->fetch($filter, $opts)
+            ->then($this->mapper->convert())
+            ->first(true);
+    }
+
+    /**
+     * Fetch all objects from the set.
      *
      * @param array $filter
      * @param array $opts
-     * @return EntityCollectionInterface|EntityInterface[]
+     * @return IteratorPipeline<OBJ>
      */
-    public function findAll(array $filter = [], array $opts = []): EntityCollectionInterface
+    public function findAll(array $filter = [], array $opts = []): IteratorPipeline
     {
-        return $this->crud->fetch($this->storage, $filter, $opts)
-            ->then($this->entityMapper->convert());
+        return $this->read->fetch($filter, $opts)
+            ->then($this->mapper->convert());
     }
 
     /**
-     * Check if an exists in the collection.
+     * Check if an object exists in the db.
      *
-     * @param mixed $id ID or filter
+     * @param mixed $id    ID or filter
      * @param array $opts
      * @return bool
      */
     public function exists($id, array $opts = []): bool
     {
-        $filter = is_array($id) ? $id : [':id' => $id];
+        $filter = is_array($id) ? $id : $this->mapper->filterOnId($id);
 
-        return $this->crud->count($this->storage, $filter, ['limit' => 1] + $opts) > 0;
+        return $this->read->count($filter, ['limit' => 1] + $opts) > 0;
     }
 
     /**
-     * Save an entity.
+     * Check if the property of an object is unique.
      *
-     * @param EntityInterface $entity
-     * @param array           $opts
-     * @return void
+     * @param OBJ             $object
+     * @param string|string[] $property  Property/properties that should be unique
+     * @param array    $opts
+     * @return bool
      */
-    public function save(EntityInterface $entity, array $opts = []): void
+    public function hasUnique($object, $property, array $opts = []): bool
     {
-        $persist = i\function_partial([$this->crud, 'save'], $this->storage, ___, $opts);
+        i/type_check($object, $this->objectClass);
 
-        $this->entityMapper->save($persist, $entity);
+        $properties = is_iterable($property) ? $property : [$property];
+        $filter = $this->mapper->filterExclude($object);
+        
+        foreach ($properties as $prop) {
+            $filter[$prop] = $object->{$prop} ?? null;
+        }
+
+        $opts[] = new LimitOption(1);
+
+        return $this->read->count($filter, $opts) > 0;
     }
 
     /**
-     * Delete an entity.
+     * Save an object.
      *
-     * @param IdentifiableEntityInterface $entity
-     * @param array $opts
-     * @return void
+     * @param OBJ|iterable<OBJ> $object
+     * @param array             $opts
      */
-    public function delete(IdentifiableEntityInterface $entity, array $opts = []): void
+    public function save($object, array $opts = []): void
+    {
+        $objects = is_iterable($object) ? $object : [$object];
+
+        $persist = function (array $data) {
+            $this->write->save($this->storage, $data, $opts);
+        };
+
+        $this->mapper->save($this->objectClass, $persist, $object);
+    }
+
+    /**
+     * Delete an object.
+     *
+     * @param OBJ   $object
+     * @param array $opts
+     */
+    public function delete($object, array $opts = []): void
     {
         $persist = function(array $ids) use ($opts) {
             $filter = count($ids) === 1 ? [':id' => reset($ids)] : [':ids' => $ids];
-            $this->crud->delete($this->storage, $filter, $opts);
+            $this->write->delete($this->storage, $filter, $opts);
         };
 
-        $this->entityMapper->delete($persist, $entity);
-    }
-
-
-    /**
-     * Fetch data.
-     * (No ODM/ORM)
-     *
-     * @param array $filter
-     * @param array $opts
-     * @return Result
-     */
-    public function fetch(array $filter = [], array $opts = []): Result
-    {
-        return $this->crud->fetch($this->storage, $filter, $opts);
-    }
-
-    /**
-     * Fetch the number of items in the set.
-     *
-     * @param array $filter
-     * @param array $opts
-     * @return int
-     */
-    public function count(array $filter = [], array $opts = []): int
-    {
-        return $this->crud->count($this->storage, $filter, $opts);
-    }
-
-    /**
-     * Full text search.
-     * (No ODM/ORM)
-     *
-     * @param string $terms
-     * @param array $filter
-     * @param array $opts
-     * @return Result
-     */
-    public function search(string $terms, array $filter = [], array $opts = []): Result
-    {
-        return $this->search->search($this->storage, $terms, $filter, $opts);
+        $this->mapper->delete($this->objectClass, $persist, $object);
     }
 }
+
