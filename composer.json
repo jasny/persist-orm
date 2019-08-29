@@ -1,6 +1,6 @@
 {
-    "name": "jasny/entity-mapper",
-    "description": "",
+    "name": "jasny/persist",
+    "description": "ORM/ODM for plain old PHP objects",
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -15,10 +15,8 @@
         "source": "https://github.com/jasny/entity-mapper"
     },
     "require": {
-        "php": ">=7.1.0",
-        "improved/function": "dev-master",
-        "improved/iterable": "dev-master",
-        "jasny/entity": "dev-master",
+        "php": ">=7.2.0",
+        "improved/improved": "~0.1.0",
         "jasny/php-functions": "dev-master as 4.2.0"
     },
     "require-dev": {
@@ -26,12 +24,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Jasny\\EntityMapper\\": "src/"
+            "Jasny\\Persist\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Jasny\\EntityMapper\\Tests\\": "tests/"
+            "Jasny\\Persist\\Tests\\": "tests/"
         }
     },
     "scripts": {

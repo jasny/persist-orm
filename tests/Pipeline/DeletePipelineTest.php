@@ -1,6 +1,6 @@
 <?php
 
-namespace Jasny\EntityMapper\Tests\Pipeline;
+namespace Jasny\Persist\Tests\ObjectMapper;
 
 use Jasny\Entity\IdentifiableEntity;
 use Jasny\EntityMapper\Pipeline\DeletePipeline;
@@ -8,7 +8,7 @@ use Jasny\TestHelper;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Jasny\EntityMapper\Pipeline\DeletePipeline
+ * @covers \Jasny\Persist\ObjectMapper\DeletePipeline
  */
 class DeletePipelineTest extends TestCase
 {

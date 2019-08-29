@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Jasny\Persist;
 
 use Improved as i;
-use Improved\IteratorPipeline\Pipeline;
 use Jasny\DB\Option\LimitOption;
 use Jasny\DB\Read\ReadInterface;
 use Jasny\DB\Write\WriteInterface;
-use Jasny\Persist\NotFoundException;
+use Jasny\Entity\Entity;
+use Jasny\Persist\Exception\NotFoundException;
 
 /**
  * Base class for composite gateway.
@@ -50,7 +50,7 @@ class Gateway implements GatewayInterface
     {
         $this->objectClass = $class;
         $this->read = $read;
-        $this->search = $search;
+        $this->write = $write;
 
         $this->mapper = new ObjectMapper();
     }
@@ -164,7 +164,7 @@ class Gateway implements GatewayInterface
      */
     public function hasUnique($object, $property, array $opts = []): bool
     {
-        i/type_check($object, $this->objectClass);
+        i\type_check($object, $this->objectClass);
 
         $properties = is_iterable($property) ? $property : [$property];
         $filter = $this->mapper->filterExclude($object);
@@ -188,27 +188,28 @@ class Gateway implements GatewayInterface
     {
         $objects = is_iterable($object) ? $object : [$object];
 
-        $persist = function (array $data) {
-            $this->write->save($this->storage, $data, $opts);
+        $persist = function (array $data) use ($opts) {
+            $this->write->save($data, $opts);
         };
 
-        $this->mapper->save($this->objectClass, $persist, $object);
+        $this->mapper->save($this->objectClass, $persist, $objects);
     }
 
     /**
      * Delete an object.
      *
-     * @param OBJ   $object
-     * @param array $opts
+     * @param OBJ|iterable<OBJ> $object
+     * @param array             $opts
      */
     public function delete($object, array $opts = []): void
     {
-        $persist = function(array $ids) use ($opts) {
-            $filter = count($ids) === 1 ? [':id' => reset($ids)] : [':ids' => $ids];
-            $this->write->delete($this->storage, $filter, $opts);
+        $objects = is_iterable($object) ? $object : [$object];
+
+        $persist = function (array $ids) use ($opts) {
+            $filter = $this->mapper->filterOnId($ids, 'any');
+            $this->write->delete($filter, $opts);
         };
 
-        $this->mapper->delete($this->objectClass, $persist, $object);
+        $this->mapper->delete($this->objectClass, $persist, $objects);
     }
 }
-

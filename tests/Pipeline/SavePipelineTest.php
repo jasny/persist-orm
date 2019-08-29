@@ -5,11 +5,10 @@ namespace Jasny\EntityMapper\Tests\Pipeline;
 use Jasny\Entity\DynamicEntity;
 use Jasny\EntityMapper\Pipeline\SavePipeline;
 use Jasny\TestHelper;
-use PHPUnit\Framework\MockObject\InvocationMocker;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Jasny\EntityMapper\Pipeline\SavePipeline
+ * @covers \Jasny\Persist\ObjectMapper\SavePipeline
  */
 class SavePipelineTest extends TestCase
 {

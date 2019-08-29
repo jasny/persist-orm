@@ -1,18 +1,15 @@
 <?php
 
-namespace Jasny\DB\Tests\Gateway;
+namespace Jasny\Persist\Tests;
 
-use Jasny\DB\ODM\ODMInterface;
-use Jasny\DB\CRUD\CRUDInterface;
-use Jasny\DB\Gateway\Gateway;
-use Jasny\DB\Search\SearchInterface;
-use Jasny\Entity\EntityInterface;
-use Jasny\Entity\Trigger\TriggerSet;
+use Jasny\DB\Read\ReadInterface;
+use Jasny\DB\Write\WriteInterface;
+use Jasny\Persist\Gateway;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Jasny\DB\Gateway\Gateway
+ * @covers \Jasny\Persist\Gateway
  */
 class GatewayTest extends TestCase
 {

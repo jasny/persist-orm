@@ -1,20 +1,17 @@
 <?php
 
-namespace Jasny\EntityMapper\Tests;
+namespace Jasny\Persist\Tests;
 
 use Improved\IteratorPipeline\Pipeline;
-use Jasny\Entity\AbstractBasicEntity;
-use Jasny\Entity\DynamicEntity;
-use Jasny\Entity\Entity;
-use Jasny\EntityMapper\EntityMapper;
-use Jasny\EntityMapper\Pipeline\SavePipeline;
-use Jasny\EntityMapper\Pipeline\DeletePipeline;
+use Jasny\Persist\ObjectMapper;
+use Jasny\Persist\SavePipeline;
+use Jasny\Persist\DeletePipeline;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Jasny\EntityMapper\EntityMapper
+ * @covers \Jasny\Persist\ObjectMapper
  */
-class EntityMapperTest extends TestCase
+class ObjectMapperTest extends TestCase
 {
     /**
      * Entity class name
@@ -45,17 +42,17 @@ class EntityMapperTest extends TestCase
 
     public function testCreate()
     {
-        $entityMapper = new EntityMapper();
+        $mapper = new ObjectMapper();
 
-        $entity = $entityMapper->create($this->class);
+        $entity = $mapper->create($this->class);
         $this->assertInstanceOf($this->class, $entity);
     }
 
     public function testCreateWithArgs()
     {
-        $entityMapper = new EntityMapper();
+        $mapper = new ObjectMapper();
 
-        $entity = $entityMapper->create($this->class, 'hello', 42);
+        $entity = $mapper->create($this->class, 'hello', 42);
         $this->assertInstanceOf($this->class, $entity);
 
         $this->assertAttributeEquals('hello', 'foo', $entity);
@@ -68,21 +65,21 @@ class EntityMapperTest extends TestCase
      */
     public function testCreateInvalidClassName()
     {
-        $entityMapper = new EntityMapper();
-        $entityMapper->create('FooBar');
+        $mapper = new ObjectMapper();
+        $mapper->create('FooBar');
     }
 
 
     public function testConvert()
     {
-        $entityMapper = new EntityMapper();
+        $mapper = new ObjectMapper();
 
         $data = new \ArrayIterator([
             ['foo' => 'hello', 'bar' => 42, 'color' => 'red'],
             ['foo' => 'bye', 'bar' => 99, 'shape' => 'square']
         ]);
 
-        $pipeline = $entityMapper->convert($this->class, $data);
+        $pipeline = $mapper->convert($this->class, $data);
         $this->assertInstanceOf(Pipeline::class, $pipeline);
 
         $entities = $pipeline->toArray();
@@ -105,8 +102,8 @@ class EntityMapperTest extends TestCase
      */
     public function testConvertInvalidClassName()
     {
-        $entityMapper = new EntityMapper();
-        $entityMapper->convert('FooBar', new \ArrayIterator());
+        $mapper = new ObjectMapper();
+        $mapper->convert('FooBar', new \ArrayIterator());
     }
 
 
@@ -129,9 +126,9 @@ class EntityMapperTest extends TestCase
         $savePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo($entities))->willReturn($pipeline);
 
-        $entityMapper = (new EntityMapper())->withSave($savePipeline);
+        $mapper = (new ObjectMapper())->withSave($savePipeline);
 
-        $entityMapper->save($persist, $entities);
+        $mapper->save($persist, $entities);
     }
 
     public function testSaveSingle()
@@ -149,9 +146,9 @@ class EntityMapperTest extends TestCase
         $savePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo([$entity]))->willReturn($pipeline);
 
-        $entityMapper = (new EntityMapper())->withSave($savePipeline);
+        $mapper = (new ObjectMapper())->withSave($savePipeline);
 
-        $entityMapper->save($persist, $entity);
+        $mapper->save($persist, $entity);
     }
 
     public function testWithSave()
@@ -159,18 +156,18 @@ class EntityMapperTest extends TestCase
         $savePipeline1 = $this->createMock(SavePipeline::class);
         $savePipeline2 = $this->createMock(SavePipeline::class);
 
-        $entityMapper = new EntityMapper();
-        $entityMapper1 = $entityMapper->withSave($savePipeline1);
-        $entityMapper2 = $entityMapper1->withSave($savePipeline2);
-        $entityMapper2a = $entityMapper2->withSave($savePipeline2);
+        $mapper = new ObjectMapper();
+        $mapper1 = $mapper->withSave($savePipeline1);
+        $mapper2 = $mapper1->withSave($savePipeline2);
+        $mapper2a = $mapper2->withSave($savePipeline2);
 
-        $this->assertNotSame($entityMapper, $entityMapper1);
-        $this->assertAttributeSame($savePipeline1, 'savePipeline', $entityMapper1);
+        $this->assertNotSame($mapper, $mapper1);
+        $this->assertAttributeSame($savePipeline1, 'savePipeline', $mapper1);
 
-        $this->assertNotSame($entityMapper1, $entityMapper2);
-        $this->assertAttributeSame($savePipeline2, 'savePipeline', $entityMapper2);
+        $this->assertNotSame($mapper1, $mapper2);
+        $this->assertAttributeSame($savePipeline2, 'savePipeline', $mapper2);
 
-        $this->assertSame($entityMapper2, $entityMapper2a);
+        $this->assertSame($mapper2, $mapper2a);
     }
 
 
@@ -193,9 +190,9 @@ class EntityMapperTest extends TestCase
         $deletePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo($entities))->willReturn($pipeline);
 
-        $entityMapper = (new EntityMapper())->withDelete($deletePipeline);
+        $mapper = (new ObjectMapper())->withDelete($deletePipeline);
 
-        $entityMapper->delete($persist, $entities);
+        $mapper->delete($persist, $entities);
     }
 
     public function testDeleteSingle()
@@ -213,9 +210,9 @@ class EntityMapperTest extends TestCase
         $deletePipeline->expects($this->once())->method('with')
             ->with($this->identicalTo([$entity]))->willReturn($pipeline);
 
-        $entityMapper = (new EntityMapper())->withDelete($deletePipeline);
+        $mapper = (new ObjectMapper())->withDelete($deletePipeline);
 
-        $entityMapper->delete($persist, $entity);
+        $mapper->delete($persist, $entity);
     }
 
     public function testWithDelete()
@@ -223,17 +220,17 @@ class EntityMapperTest extends TestCase
         $deletePipeline1 = $this->createMock(DeletePipeline::class);
         $deletePipeline2 = $this->createMock(DeletePipeline::class);
 
-        $entityMapper = new EntityMapper();
-        $entityMapper1 = $entityMapper->withDelete($deletePipeline1);
-        $entityMapper2 = $entityMapper1->withDelete($deletePipeline2);
-        $entityMapper2a = $entityMapper2->withDelete($deletePipeline2);
+        $mapper = new ObjectMapper();
+        $mapper1 = $mapper->withDelete($deletePipeline1);
+        $mapper2 = $mapper1->withDelete($deletePipeline2);
+        $mapper2a = $mapper2->withDelete($deletePipeline2);
 
-        $this->assertNotSame($entityMapper, $entityMapper1);
-        $this->assertAttributeSame($deletePipeline1, 'deletePipeline', $entityMapper1);
+        $this->assertNotSame($mapper, $mapper1);
+        $this->assertAttributeSame($deletePipeline1, 'deletePipeline', $mapper1);
 
-        $this->assertNotSame($entityMapper1, $entityMapper2);
-        $this->assertAttributeSame($deletePipeline2, 'deletePipeline', $entityMapper2);
+        $this->assertNotSame($mapper1, $mapper2);
+        $this->assertAttributeSame($deletePipeline2, 'deletePipeline', $mapper2);
 
-        $this->assertSame($entityMapper2, $entityMapper2a);
+        $this->assertSame($mapper2, $mapper2a);
     }
 }

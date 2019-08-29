@@ -6,12 +6,12 @@ namespace Jasny\Persist;
 
 use Jasny\DB\Read\ReadInterface;
 use Jasny\DB\Write\WriteInterface;
-use Jasny\DB\Exception\FoundException;
+use Jasny\Persist\Exception\NotFoundException;
 
 /**
  * Gateway to a data set, like a DB table (RDBMS) or collection (NoSQL).
  *
- * @template OBJ as object
+ * @template OBJ
  */
 interface GatewayInterface
 {

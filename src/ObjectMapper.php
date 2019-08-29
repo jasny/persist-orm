@@ -110,9 +110,9 @@ class ObjectMapper implements ObjectMapperInterface
      *
      * @param string $class    Object class
      * @param mixed  ...$args  Arguments are passed to class constructor
-     * @return Object
+     * @return object
      */
-    public function create(string $class, ...$args): Object
+    public function create(string $class, ...$args): object
     {
         if (!is_a($class, Object::class, true)) {
             throw new \InvalidArgumentException("$class isn't an Object");
@@ -128,6 +128,7 @@ class ObjectMapper implements ObjectMapperInterface
      * @param string          $class  Object class
      * @param iterable<array> $data
      * @return PipelineBuilder|Pipeline|iterable<Object>
+     * @throws \ReflectionException
      */
     public function convert(string $class, iterable $data = null)
     {
@@ -138,12 +139,12 @@ class ObjectMapper implements ObjectMapperInterface
         if (method_exists($class, '__set_state')) {
             $createObject = function (array $values) use ($class) {
                 return $class::__set_state($values);
-            });
+            };
         } else {
             $refl = new ReflectionClass($class);
 
             $createObject = function (array $values) use ($refl) {
-                $object = new $refl->newInstanceWithoutConstructor();
+                $object = $refl->newInstanceWithoutConstructor();
                 object_set_properties($object, $values);
 
                 if (method_exists($object, '__construct')) {
@@ -151,7 +152,7 @@ class ObjectMapper implements ObjectMapperInterface
                 }
 
                 return $object;
-            });
+            };
         }
 
         return (isset($data) ? Pipeline::with($data) : Pipeline::build())
@@ -170,7 +171,7 @@ class ObjectMapper implements ObjectMapperInterface
     public function save(string $class, callable $persist, iterable $objects): void
     {
         $this->savePipeline
-            ->unstub('type_check', 'Improved\iterable_expect_type', $class]
+            ->unstub('type_check', 'Improved\iterable_expect_type', $class)
             ->unstub('persist', $persist)
             ->with($objects)
             ->walk();
@@ -187,7 +188,7 @@ class ObjectMapper implements ObjectMapperInterface
     public function delete(string $class, callable $persist, iterable $objects): void
     {
         $this->deletePipeline
-            ->unstub('type_check', 'Improved\iterable_expect_type', $class]
+            ->unstub('type_check', 'Improved\iterable_expect_type', $class)
             ->unstub('persist', $persist)
             ->with($objects)
             ->walk();
